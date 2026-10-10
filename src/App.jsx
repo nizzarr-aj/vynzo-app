@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { supabase, supabaseConfigured } from './lib/supabase';
 import { Eye, Gift, Wallet, Clock3, LogOut, PlayCircle, Glasses, RefreshCw } from 'lucide-react';
 
