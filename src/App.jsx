@@ -14,6 +14,9 @@ export default function App() {
   const [wallet, setWallet] = useState(null);
   const [box, setBox] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [currentTab, setCurrentTab] = useState('home');
+  const [videos, setVideos] = useState([]);
+  const [loadingVideos, setLoadingVideos] = useState(false);
 
   useEffect(() => {
     if (!supabase) return;
@@ -25,6 +28,21 @@ export default function App() {
   useEffect(() => {
     if (session) loadDashboard();
   }, [session]);
+
+  useEffect(() => {
+    if (session && currentTab === 'videos') loadVideos();
+  }, [session, currentTab]);
+
+  async function loadVideos() {
+    if (!supabase) return;
+    setLoadingVideos(true);
+    const { data, error } = await supabase.from('vynzo_video_feed')
+      .select('id,title,description,video_url,thumbnail_url,duration_seconds,username,display_name,likes_count,comments_count,published_at')
+      .order('published_at', { ascending: false }).limit(20);
+    if (error) setMessage('ما نجّمناش نحمّلوا الفيديوهات. تثبّت من صلاحيات قاعدة البيانات.');
+    else setVideos(data || []);
+    setLoadingVideos(false);
+  }
 
   async function loadDashboard() {
     if (!supabase || !session) return;
@@ -95,6 +113,7 @@ export default function App() {
 
   return <main className="app-shell">
     <header className="topbar"><div className="brand"><div className="brand-mark small">V</div><div><b>VYNZO</b><small>شاهد. اكتشف. تقدّم.</small></div></div><button className="icon-btn" onClick={signOut} title="خروج"><LogOut size={18}/></button></header>
+    {currentTab === 'videos' ? <section className="feed-page"><div className="section-heading"><div><span className="mini-label">اكتشف المحتوى</span><h2>الفيديوهات</h2></div><button className="icon-btn" onClick={loadVideos} disabled={loadingVideos}>{loadingVideos ? '…' : <RefreshCw size={17}/>}</button></div>{loadingVideos ? <div className="empty-state">قاعدين نحمّلوا الفيديوهات…</div> : videos.length === 0 ? <div className="empty-state"><PlayCircle size={32}/><b>ما فماش فيديوهات منشورة توّا</b><p>كي يتنشر محتوى في VYNZO، تلقاه هنا.</p></div> : <div className="video-list">{videos.map(video => <article className="video-card" key={video.id}>{video.video_url && /^https?:\/\//i.test(video.video_url) ? <video className="video-player" controls playsInline preload="metadata" poster={video.thumbnail_url || undefined} src={video.video_url}/> : <div className="video-placeholder"><PlayCircle size={34}/><span>رابط تشغيل الفيديو يلزم يتجهّز</span></div>}<div className="video-info"><b>{video.title}</b>{video.description && <p>{video.description}</p>}<div className="video-meta"><span>@{video.username || video.display_name || 'VYNZO creator'}</span><span>♥ {video.likes_count || 0}</span><span>◉ {video.comments_count || 0}</span></div></div></article>)}</div>}</section> : <>
     <section className="welcome"><div><p className="eyebrow">مرحبا بيك</p><h1>نهارك زين، <span>واصل تقدّمك!</span></h1><p>كل دقيقة مشاهدة تتسجّل حسب نظام التطبيق.</p></div><div className="welcome-icon"><Glasses size={36}/></div></section>
     {message && <div className="notice">{message}</div>}
     <section className="stats-grid">
@@ -112,7 +131,8 @@ export default function App() {
       <button className="primary-btn" disabled={busy || !box?.eligible_to_open || !box?.box_id || box?.box_status === 'claimed'} onClick={claimBox}><Gift size={17}/>{busy ? 'لحظة...' : box?.box_status === 'claimed' ? 'تمّ استلامه' : 'استلام الصندوق · 50 نقطة'}</button>
       <small className="disclaimer">النقاط والقيمة المعروضة تقديرية. التحويل والسحب معطّلين حاليًا، وما فماش ضمان لأرباح نقدية.</small>
     </section>
-    <nav className="bottom-nav"><div className="nav-item active"><PlayCircle size={20}/><span>الرئيسية</span></div><div className="nav-item"><Eye size={20}/><span>الفيديوهات</span></div><div className="nav-item"><Gift size={20}/><span>المكافآت</span></div><div className="nav-item"><Wallet size={20}/><span>المحفظة</span></div></nav>
+    </>}
+    <nav className="bottom-nav"><button className={'nav-item '+(currentTab==='home'?'active':'')} onClick={()=>setCurrentTab('home')}><PlayCircle size={20}/><span>الرئيسية</span></button><button className={'nav-item '+(currentTab==='videos'?'active':'')} onClick={()=>setCurrentTab('videos')}><Eye size={20}/><span>الفيديوهات</span></button><button className={'nav-item '+(currentTab==='rewards'?'active':'')} onClick={()=>setCurrentTab('home')}><Gift size={20}/><span>المكافآت</span></button><button className={'nav-item '+(currentTab==='wallet'?'active':'')} onClick={()=>setCurrentTab('home')}><Wallet size={20}/><span>المحفظة</span></button></nav>
     <footer>VYNZO • نسخة تجريبية أوّلية</footer>
   </main>;
 }
