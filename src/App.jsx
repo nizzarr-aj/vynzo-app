@@ -90,7 +90,7 @@ export default function App() {
   const points = Number(wallet?.points_balance ?? 0);
   const value = Number(wallet?.estimated_value_usd ?? 0);
   const used = Number(box?.watch_seconds_used ?? 0);
-  const required = Number(box?.required_seconds ?? 2400);
+  const required = Number(box?.watch_seconds_required ?? 2400);
   const progress = Math.min(100, Math.round((used / Math.max(required, 1)) * 100));
 
   return <main className="app-shell">
@@ -108,8 +108,8 @@ export default function App() {
     </section>
     <section className="panel reward-panel"><div className="section-heading"><div><span className="mini-label">مكافأة يومية</span><h2>الصندوق الذهبي</h2></div><div className="gift-orb"><Gift size={23}/></div></div>
       <p className="muted">كمّل 40 دقيقة مشاهدة مسجّلة باش تتحقّق من إمكانية الحصول على الصندوق اليومي.</p>
-      <div className="box-status">{box?.box_status === 'claimed' ? 'الصندوق متاع اليوم خذيتو بالفعل.' : box?.eligible ? 'مبروك! الصندوق متاح ليك.' : 'كمّل وقت المشاهدة المطلوب باش تتحقّق الأهلية.'}</div>
-      <button className="primary-btn" disabled={busy || !box?.eligible || !box?.box_id || box?.box_status === 'claimed'} onClick={claimBox}><Gift size={17}/>{busy ? 'لحظة...' : box?.box_status === 'claimed' ? 'تمّ استلامه' : 'استلام الصندوق · 50 نقطة'}</button>
+      <div className="box-status">{box?.box_status === 'claimed' ? 'الصندوق متاع اليوم خذيتو بالفعل.' : box?.eligible_to_open ? 'مبروك! الصندوق متاح ليك.' : 'كمّل وقت المشاهدة المطلوب باش تتحقّق الأهلية.'}</div>
+      <button className="primary-btn" disabled={busy || !box?.eligible_to_open || !box?.box_id || box?.box_status === 'claimed'} onClick={claimBox}><Gift size={17}/>{busy ? 'لحظة...' : box?.box_status === 'claimed' ? 'تمّ استلامه' : 'استلام الصندوق · 50 نقطة'}</button>
       <small className="disclaimer">النقاط والقيمة المعروضة تقديرية. التحويل والسحب معطّلين حاليًا، وما فماش ضمان لأرباح نقدية.</small>
     </section>
     <nav className="bottom-nav"><div className="nav-item active"><PlayCircle size={20}/><span>الرئيسية</span></div><div className="nav-item"><Eye size={20}/><span>الفيديوهات</span></div><div className="nav-item"><Gift size={20}/><span>المكافآت</span></div><div className="nav-item"><Wallet size={20}/><span>المحفظة</span></div></nav>
