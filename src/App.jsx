@@ -42,6 +42,9 @@ export default function App() {
   const [box, setBox] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [currentTab, setCurrentTab] = useState('home');
+  const [language, setLanguage] = useState(() => localStorage.getItem('vynzo-language') || 'ar');
+  const isFr = language === 'fr';
+  const tx = (ar, fr) => isFr ? fr : ar;
   const [videos, setVideos] = useState([]);
   const [loadingVideos, setLoadingVideos] = useState(false);
   const [likedVideos, setLikedVideos] = useState([]);
@@ -67,7 +70,7 @@ export default function App() {
     const { data, error } = await supabase.from('vynzo_video_feed')
       .select('id,title,description,video_url,thumbnail_url,duration_seconds,username,display_name,likes_count,comments_count,published_at')
       .order('published_at', { ascending: false }).limit(20);
-    if (error) setMessage('ما نجّمناش نحمّلوا الفيديوهات. تثبّت من صلاحيات قاعدة البيانات.');
+    if (error) setMessage(tx('ما نجّمناش نحمّلوا الفيديوهات. تثبّت من صلاحيات قاعدة البيانات.','Could not load videos. Check the database permissions.'));
     else setVideos(data || []);
     setLoadingVideos(false);
   }
@@ -139,36 +142,36 @@ export default function App() {
   const required = Number(box?.watch_seconds_required ?? 2400);
   const progress = Math.min(100, Math.round((used / Math.max(required, 1)) * 100));
 
-  return <main className="app-shell">
-    <header className="topbar"><div className="brand"><div className="brand-mark small">V</div><div><b>VYNZO</b><small>شاهد. اكتشف. تقدّم.</small></div></div><button className="icon-btn" onClick={signOut} title="خروج"><LogOut size={18}/></button></header>
+  return <main className={`app-shell ${isFr ? 'lang-fr' : 'lang-ar'}`} dir={isFr ? 'ltr' : 'rtl'}>
+    <header className="topbar"><div className="brand"><div className="brand-mark small">V</div><div><b>VYNZO</b><small>{tx('شاهد. اكتشف. تقدّم.','Watch. Discover. Rise.')}</small></div></div><div className="topbar-tools"><button className="language-toggle" onClick={()=>{const next= isFr ? 'ar':'fr';setLanguage(next);localStorage.setItem('vynzo-language',next);}} aria-label="Change language">{isFr ? 'عربي' : 'FR'}</button><button className="icon-btn" onClick={signOut} title={tx('خروج','Sign out')}><LogOut size={18}/></button></div></header>
     {currentTab === 'videos' ? <section className="tiktok-feed">
-      <div className="feed-topbar"><button className="feed-refresh" onClick={loadVideos} disabled={loadingVideos} aria-label="تحديث الفيديوهات"><RefreshCw size={18}/></button><div><span>متابَعون</span><b>لك</b><i/></div></div>
-      {loadingVideos ? <div className="feed-empty"><RefreshCw size={30}/><b>قاعدين نحمّلوا الفيديوهات…</b></div> : <><div className="demo-notice">{videos.length === 0 ? 'وضع تجريبي · الفيديوهات هاذم للعرض فقط' : ''}</div><div className="tiktok-scroll">{(videos.length ? videos : demoVideos).map((video,index) => <article className="tiktok-video" key={video.id}>
+      <div className="feed-topbar"><button className="feed-refresh" onClick={loadVideos} disabled={loadingVideos} aria-label="تحديث الفيديوهات"><RefreshCw size={18}/></button><div><span>Following</span><b>For You</b><i/></div></div>
+      {loadingVideos ? <div className="feed-empty"><RefreshCw size={30}/><b>قاعدين نحمّلوا الفيديوهات…</b></div> : <><div className="demo-notice">{videos.length === 0 ? tx('وضع تجريبي · الفيديوهات هاذم للعرض فقط','DEMO MODE · Sample videos for preview only') : ''}</div><div className="tiktok-scroll">{(videos.length ? videos : demoVideos).map((video,index) => <article className="tiktok-video" key={video.id}>
         {video.video_url && /^https?:\/\//i.test(video.video_url) ? <video className="tiktok-player" controls playsInline preload="metadata" poster={video.thumbnail_url || undefined} src={video.video_url}/> : <div className="tiktok-placeholder"><PlayCircle size={48}/><b>الفيديو غير جاهز للتشغيل</b><span>يلزم رابط فيديو صالح</span></div>}
         <div className="video-shade"/>
-        <div className="tiktok-caption"><b>@{video.username || video.display_name || 'vynzo_creator'}</b><p>{video.title}</p>{video.description && <p>{video.description}</p>}<span className="sound-label"><Volume2 size={14}/> {video.is_demo ? 'فيديو تجريبي · VYNZO' : 'الصوت الأصلي · VYNZO'}</span></div>
+        <div className="tiktok-caption"><b>@{video.username || video.display_name || 'vynzo_creator'}</b><p>{video.title}</p>{video.description && <p>{video.description}</p>}<span className="sound-label"><Volume2 size={14}/> {video.is_demo ? tx('فيديو تجريبي · VYNZO','Demo video · VYNZO') : tx('الصوت الأصلي · VYNZO','Original sound · VYNZO')}</span></div>
         <div className="tiktok-actions"><div className="creator-avatar">{(video.display_name || video.username || 'V').slice(0,1).toUpperCase()}</div><button aria-label="إعجاب" className={likedVideos.includes(video.id)?'feed-action liked':'feed-action'} onClick={()=>setLikedVideos(prev=>prev.includes(video.id)?prev.filter(id=>id!==video.id):[...prev,video.id])}><Heart size={29} fill={likedVideos.includes(video.id)?'currentColor':'none'}/><small>{Number(video.likes_count||0)+(likedVideos.includes(video.id)?1:0)}</small></button><div className="feed-action"><MessageCircle size={28}/><small>{video.comments_count||0}</small></div><button aria-label="مشاركة" className="feed-action" onClick={()=>{if(navigator.share) navigator.share({title:video.title||'VYNZO',text:video.description||'',url:window.location.href}).catch(()=>{});else setMessage('استعمل زر مشاركة المتصفّح باش تبعث رابط VYNZO.')}}><Share2 size={27}/><small>مشاركة</small></button></div>
       </article>)}</div></>}
     </section>: currentTab === 'rewards' ? <section className="feed-page"><div className="section-heading"><div><span className="mini-label">مكافآت VYNZO</span><h2>الصندوق الذهبي</h2></div><div className="gift-orb"><Gift size={23}/></div></div><div className="panel"><p className="muted">يلزمك 40 دقيقة مشاهدة مسجّلة في النهار باش تتحقّق من الأهلية.</p><div className="progress-meta"><b>{Math.floor(used/60)} / 40 دقيقة</b><span>{progress}%</span></div><div className="progress-track"><div className="progress-fill" style={{width:progress+'%'}}/></div><div className="box-status">{box?.box_status === 'claimed' ? 'الصندوق متاع اليوم خذيتو بالفعل.' : box?.eligible_to_open ? 'الصندوق متاح ليك اليوم.' : 'مازلت ما كملتش وقت المشاهدة المطلوب.'}</div><button className="primary-btn" disabled={busy || !box?.eligible_to_open || !box?.box_id || box?.box_status === 'claimed'} onClick={claimBox}><Gift size={17}/>{busy ? 'لحظة...' : box?.box_status === 'claimed' ? 'تمّ استلامه' : 'استلام الصندوق · 50 نقطة'}</button><small className="disclaimer">النقاط ليست أرباحًا نقدية مضمونة، والسحب معطّل حاليًا.</small></div></section> : currentTab === 'wallet' ? <section className="feed-page"><div className="section-heading"><div><span className="mini-label">رصيدك</span><h2>المحفظة</h2></div><div className="gift-orb"><Wallet size={23}/></div></div><div className="panel"><span className="mini-label">رصيد النقاط</span><h1>{points.toLocaleString('en-US')} <small>نقطة</small></h1><p className="muted">القيمة التقديرية: ${value.toFixed(2)} حسب إعدادات التطبيق الحالية.</p><div className="box-status">السحب والتحويل معطّلان حاليًا. ما فماش مدفوعات فعلية في النسخة هاذي.</div></div></section> : <>
-    <section className="welcome"><div><p className="eyebrow">مرحبا بيك</p><h1>نهارك زين، <span>واصل تقدّمك!</span></h1><p>كل دقيقة مشاهدة تتسجّل حسب نظام التطبيق.</p></div><div className="welcome-icon"><Glasses size={36}/></div></section>
+    <section className="welcome"><div><p className="eyebrow">{tx('مرحبا بيك','WELCOME BACK')}</p><h1>{tx('نهارك زين، ','Your next') } <span>{tx('واصل تقدّمك!','level starts now.')}</span></h1><p>{tx('كل دقيقة مشاهدة تتسجّل حسب نظام التطبيق.','Track your viewing progress and daily rewards in one place.')}</p></div><div className="welcome-icon"><Glasses size={36}/></div></section>
     {message && <div className="notice">{message}</div>}
     <section className="stats-grid">
-      <article className="stat-card"><div className="stat-icon"><Wallet size={19}/></div><span>رصيد النقاط</span><strong>{points.toLocaleString('en-US')}</strong><small>نقطة</small></article>
-      <article className="stat-card"><div className="stat-icon purple"><Gift size={19}/></div><span>القيمة التقديرية</span><strong>${value.toFixed(2)}</strong><small>موش مبلغ قابل للسحب توّا</small></article>
+      <article className="stat-card"><div className="stat-icon"><Wallet size={19}/></div><span>{tx('رصيد النقاط','Points balance')}</span><strong>{points.toLocaleString('en-US')}</strong><small>نقطة</small></article>
+      <article className="stat-card"><div className="stat-icon purple"><Gift size={19}/></div><span>{tx('القيمة التقديرية','Estimated value')}</span><strong>${value.toFixed(2)}</strong><small>موش مبلغ قابل للسحب توّا</small></article>
     </section>
-    <section className="panel watch-panel"><div className="section-heading"><div><span className="mini-label">وقت المشاهدة</span><h2>حصّتك اليومية</h2></div><button className="icon-btn" onClick={loadDashboard} disabled={refreshing}>{refreshing ? '…' : <RefreshCw size={17}/>}</button></div>
+    <section className="panel watch-panel"><div className="section-heading"><div><span className="mini-label">{tx('وقت المشاهدة','WATCH TIME')}</span><h2>{tx('حصّتك اليومية','Your daily goal')}</h2></div><button className="icon-btn" onClick={loadDashboard} disabled={refreshing}>{refreshing ? '…' : <RefreshCw size={17}/>}</button></div>
       <div className="progress-meta"><b>{Math.floor(used/60)} / 40 دقيقة</b><span>{progress}%</span></div><div className="progress-track"><div className="progress-fill" style={{width:progress+'%'}}/></div>
       <div className="slot-grid">{slots.map((time,i)=><div className="slot" key={time}><Clock3 size={16}/><b>{time}</b><small>الحصّة {i+1}</small></div>)}</div>
       <p className="hint">تتحلّ 10 دقايق في كل حصّة. أقصى وقت في النهار 40 دقيقة، والوقت غير المستعمل ما يتنقلش لنهار آخر.</p>
     </section>
-    <section className="panel reward-panel"><div className="section-heading"><div><span className="mini-label">مكافأة يومية</span><h2>الصندوق الذهبي</h2></div><div className="gift-orb"><Gift size={23}/></div></div>
+    <section className="panel reward-panel"><div className="section-heading"><div><span className="mini-label">{tx('مكافأة يومية','DAILY REWARD')}</span><h2>{tx('الصندوق الذهبي','Golden reward')}</h2></div><div className="gift-orb"><Gift size={23}/></div></div>
       <p className="muted">كمّل 40 دقيقة مشاهدة مسجّلة باش تتحقّق من إمكانية الحصول على الصندوق اليومي.</p>
       <div className="box-status">{box?.box_status === 'claimed' ? 'الصندوق متاع اليوم خذيتو بالفعل.' : box?.eligible_to_open ? 'مبروك! الصندوق متاح ليك.' : 'كمّل وقت المشاهدة المطلوب باش تتحقّق الأهلية.'}</div>
       <button className="primary-btn" disabled={busy || !box?.eligible_to_open || !box?.box_id || box?.box_status === 'claimed'} onClick={claimBox}><Gift size={17}/>{busy ? 'لحظة...' : box?.box_status === 'claimed' ? 'تمّ استلامه' : 'استلام الصندوق · 50 نقطة'}</button>
       <small className="disclaimer">النقاط والقيمة المعروضة تقديرية. التحويل والسحب معطّلين حاليًا، وما فماش ضمان لأرباح نقدية.</small>
     </section>
     </>}
-    <nav className="bottom-nav"><button className={'nav-item '+(currentTab==='home'?'active':'')} onClick={()=>setCurrentTab('home')}><PlayCircle size={20}/><span>الرئيسية</span></button><button className={'nav-item '+(currentTab==='videos'?'active':'')} onClick={()=>setCurrentTab('videos')}><Eye size={20}/><span>الفيديوهات</span></button><button className={'nav-item '+(currentTab==='rewards'?'active':'')} onClick={()=>setCurrentTab('rewards')}><Gift size={20}/><span>المكافآت</span></button><button className={'nav-item '+(currentTab==='wallet'?'active':'')} onClick={()=>setCurrentTab('wallet')}><Wallet size={20}/><span>المحفظة</span></button></nav>
-    <footer>VYNZO • نسخة تجريبية أوّلية</footer>
+    <nav className="bottom-nav"><button className={'nav-item '+(currentTab==='home'?'active':'')} onClick={()=>setCurrentTab('home')}><PlayCircle size={20}/><span>{tx('الرئيسية','Home')}</span></button><button className={'nav-item '+(currentTab==='videos'?'active':'')} onClick={()=>setCurrentTab('videos')}><Eye size={20}/><span>{tx('الفيديوهات','Videos')}</span></button><button className={'nav-item '+(currentTab==='rewards'?'active':'')} onClick={()=>setCurrentTab('rewards')}><Gift size={20}/><span>{tx('المكافآت','Rewards')}</span></button><button className={'nav-item '+(currentTab==='wallet'?'active':'')} onClick={()=>setCurrentTab('wallet')}><Wallet size={20}/><span>{tx('المحفظة','Wallet')}</span></button></nav>
+    <footer>VYNZO • {tx('نسخة تجريبية أوّلية','Early access preview')}</footer>
   </main>;
 }
