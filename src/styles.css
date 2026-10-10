@@ -263,3 +263,59 @@ footer{padding:22px 0 8px;text-align:center;color:#686e85;font-size:11px}
 .home-stats{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:15px}.balance-card,.value-card{position:relative;overflow:hidden;min-width:0;padding:17px 15px 13px;border:1px solid #35304d;border-radius:23px;background:linear-gradient(145deg,#1c1d30,#11131f 85%);box-shadow:0 12px 32px #0002,inset 0 1px #ffffff08}.balance-card:after,.value-card:after{content:"";position:absolute;right:-28px;top:-37px;width:95px;height:95px;border-radius:50%;border:1px solid #bd9bff16;box-shadow:0 0 0 12px #bd9bff08,0 0 0 24px #bd9bff05;pointer-events:none}.card-label{display:flex;align-items:center;gap:9px;color:#b3b1ca;font-size:10px;font-weight:700;line-height:1.4}.card-label .stat-icon{flex-shrink:0;width:36px;height:36px;margin:0;border-radius:13px}.balance-card>strong,.value-card>strong{display:block;position:relative;z-index:1;margin:15px 0 14px;color:#fff;font-size:clamp(22px,6vw,30px);line-height:1.2;direction:ltr;text-align:start;letter-spacing:-.04em;white-space:nowrap}.balance-card>strong small{font-size:11px;color:#bdb2dc;letter-spacing:0}.card-bottom{display:flex;align-items:center;justify-content:space-between;gap:5px;padding-top:11px;border-top:1px solid #ffffff0d;color:#858ba5;font-size:10px}.value-spark{color:#d2b5ff;font-size:18px}
 .lang-fr .hero-copy{text-align:left}.lang-fr .hero-topline{letter-spacing:.06em}.lang-fr .hero-decoration{right:auto;left:4%}.lang-fr .hero-play{margin-left:0}
 @media(max-width:380px){.home-hero{padding:19px 16px;min-height:275px}.hero-copy{max-width:72%;margin-top:24px}.hero-copy h1{font-size:29px}.hero-decoration{right:0;transform:scale(.83);transform-origin:top right}.home-stats{gap:8px}.balance-card,.value-card{padding:14px 11px 12px}.card-label{gap:6px;font-size:9px}.card-label .stat-icon{width:31px;height:31px}.balance-card>strong,.value-card>strong{font-size:23px}}
+
+
+/* Match the supplied VYNZO reference: handwritten editorial typography and spacious violet hero */
+@import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;500;600;700&family=Kalam:wght@300;400;700&display=swap');
+.app-shell{font-family:'Caveat','Kalam',cursive!important;font-size:17px}
+.app-shell button,.app-shell input,.app-shell label,.app-shell small,.app-shell p,.app-shell span,.app-shell b,.app-shell strong,.app-shell h1,.app-shell h2,.app-shell footer{font-family:inherit}
+.brand b{font-family:'Caveat',cursive;font-size:35px;letter-spacing:2px;font-weight:700}
+.brand small{font-size:18px;font-style:italic}
+.language-toggle,.icon-btn{font-family:'Kalam',cursive;font-size:16px}
+.home-hero{min-height:395px;margin-top:25px;padding:28px 30px 25px;border-radius:34px;border-width:1.5px;background:radial-gradient(ellipse at 78% 36%,rgba(133,85,220,.36),transparent 45%),linear-gradient(135deg,#25183d 0%,#171426 58%,#10121f 100%)}
+.hero-topline{font-family:'Caveat',cursive;font-size:17px;letter-spacing:.05em}
+.hero-copy{margin-top:36px;max-width:68%}
+.hero-copy .eyebrow{font-size:19px;letter-spacing:.04em}
+.hero-copy h1{font-family:'Caveat',cursive;font-size:clamp(43px,9vw,58px);font-weight:700;letter-spacing:.04em;line-height:1.08}
+.hero-copy h1 span{font-size:27px}
+.hero-copy>p:last-child{font-family:'Kalam',cursive;font-size:16px;line-height:1.8;color:#c9c0dc}
+.hero-play{font-family:'Caveat',cursive;font-size:18px;min-height:62px;min-width:210px;padding:15px 20px;border-radius:22px;margin-top:22px}
+.hero-decoration{top:82px;right:3%;width:45%;height:230px}
+.hero-ring{width:205px;height:205px}
+.ring-b{width:163px;height:163px;top:21px;right:21px}
+.hero-v{top:56px;right:50px;width:120px;height:120px;border-radius:36px;font-size:78px}
+.spark{font-size:32px}
+.spark-a{top:0;right:32px}
+.spark-b{top:160px;right:190px}
+.card-label{font-family:'Caveat',cursive;font-size:15px;letter-spacing:.03em}
+.balance-card,.value-card{min-height:220px;padding:20px 19px 15px;border-radius:29px}
+.card-label .stat-icon{width:48px;height:48px;border-radius:17px}
+.balance-card>strong,.value-card>strong{font-family:'Caveat',cursive;font-size:clamp(30px,7vw,39px);margin:23px 0 22px}
+.balance-card>strong small{font-size:16px}
+.card-bottom{font-family:'Kalam',cursive;font-size:13px;padding-top:16px}
+.panel{border-radius:30px}
+.section-heading h2{font-family:'Caveat',cursive;font-size:29px}
+.mini-label{font-family:'Caveat',cursive;font-size:15px}
+.nav-item{font-family:'Caveat',cursive;font-size:16px;gap:7px}
+.nav-item svg{width:26px;height:26px}
+@media(max-width:600px){
+ .home-hero{min-height:390px;padding:24px 22px 22px;border-radius:31px}
+ .hero-copy{max-width:70%;margin-top:35px}
+ .hero-copy h1{font-size:clamp(39px,10vw,53px)}
+ .hero-copy>p:last-child{font-size:15px}
+ .hero-decoration{top:91px;right:0;transform:scale(.92);transform-origin:top right}
+ .hero-play{min-width:0;min-height:60px;font-size:18px}
+ .balance-card,.value-card{min-height:215px;padding:17px 14px 14px}
+ .card-label{font-size:14px;gap:7px}
+ .card-label .stat-icon{width:43px;height:43px}
+ .balance-card>strong,.value-card>strong{font-size:clamp(28px,8vw,36px);margin:25px 0 23px}
+ .card-bottom{font-size:12px}
+ .nav-item{font-size:16px}
+}
+@media(max-width:380px){
+ .home-hero{min-height:365px;padding:19px 15px}
+ .hero-copy{max-width:73%}
+ .hero-decoration{right:-10px;transform:scale(.78);transform-origin:top right}
+ .balance-card,.value-card{padding:14px 10px;min-height:205px}
+ .card-label{font-size:12px}
+}
