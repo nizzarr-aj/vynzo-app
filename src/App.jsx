@@ -33,6 +33,7 @@ const demoVideos = [
 
 export default function App() {
   const [session, setSession] = useState(null);
+  const [showAuth, setShowAuth] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignup, setIsSignup] = useState(false);
@@ -126,7 +127,7 @@ export default function App() {
     </div></main>;
   }
 
-  if (!session) return <main className="setup-page"><form className="auth-card" onSubmit={handleAuth}>
+  if (!session && showAuth) return <main className="setup-page"><form className="auth-card" onSubmit={handleAuth}>
     <div className="brand-mark">V</div><p className="eyebrow">SHORT VIDEO • REWARDS</p>
     <h1>{isSignup ? tx('إنشاء حساب','Create account') : tx('مرحبا برجوعك','Welcome back')}</h1><p className="muted">{tx('ادخل لـ VYNZO وتابع رصيدك ووقت المشاهدة.','Sign in to VYNZO to track your balance and watch time.')}</p>
     <label>{tx('البريد الإلكتروني','Email address')}<input type="email" value={email} onChange={e=>setEmail(e.target.value)} required autoComplete="email" /></label>
@@ -143,7 +144,7 @@ export default function App() {
   const progress = Math.min(100, Math.round((used / Math.max(required, 1)) * 100));
 
   return <main className={`app-shell ${isFr ? 'lang-fr' : 'lang-ar'}`} dir={isFr ? 'ltr' : 'rtl'}>
-    <header className="topbar"><div className="brand"><div className="brand-mark small">V</div><div><b>VYNZO</b><small>{tx('شاهد. اكتشف. تقدّم.','Watch. Discover. Rise.')}</small></div></div><div className="topbar-tools"><button className="language-toggle" onClick={()=>{const next= isFr ? 'ar':'fr';setLanguage(next);localStorage.setItem('vynzo-language',next);}} aria-label="Change language">{isFr ? 'عربي' : 'FR'}</button><button className="icon-btn" onClick={signOut} title={tx('خروج','Sign out')}><LogOut size={18}/></button></div></header>
+    <header className="topbar"><div className="brand"><div className="brand-mark small">V</div><div><b>VYNZO</b><small>{tx('شاهد. اكتشف. تقدّم.','Watch. Discover. Rise.')}</small></div></div><div className="topbar-tools"><button className="language-toggle" onClick={()=>{const next= isFr ? 'ar':'fr';setLanguage(next);localStorage.setItem('vynzo-language',next);}} aria-label="Change language">{isFr ? 'عربي' : 'FR'}</button><button className="icon-btn" onClick={session ? signOut : () => setShowAuth(true)} title={session ? tx('خروج','Sign out') : tx('دخول','Sign in')}>{session ? <LogOut size={18}/> : <LogOut size={18}/>}</button></div></header>
     {currentTab === 'videos' ? <section className="tiktok-feed">
       <div className="feed-topbar"><button className="feed-refresh" onClick={loadVideos} disabled={loadingVideos} aria-label={tx('تحديث الفيديوهات','Refresh videos')}><RefreshCw size={18}/></button><div><span>{tx('متابَعون','Following')}</span><b>{tx('لك','For You')}</b><i/></div></div>
       {loadingVideos ? <div className="feed-empty"><RefreshCw size={30}/><b>قاعدين نحمّلوا الفيديوهات…</b></div> : <><div className="demo-notice">{videos.length === 0 ? tx('وضع تجريبي · الفيديوهات هاذم للعرض فقط','DEMO MODE · Sample videos for preview only') : ''}</div><div className="tiktok-scroll">{(videos.length ? videos : demoVideos).map((video,index) => <article className="tiktok-video" key={video.id}>
