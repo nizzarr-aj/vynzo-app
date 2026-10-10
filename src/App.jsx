@@ -4,6 +4,33 @@ import { Eye, Gift, Wallet, Clock3, LogOut, PlayCircle, Glasses, RefreshCw, Hear
 
 const slots = ['06:00', '12:00', '18:00', '23:00'];
 
+const demoVideos = [
+  {
+    id: 'demo-flower',
+    title: 'تجربة عرض الفيديو العمودي',
+    description: 'هذا فيديو تجريبي باش تشوف شكل موجز VYNZO. موش محتوى منشور من مستخدم.',
+    video_url: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
+    thumbnail_url: '',
+    username: 'vynzo_demo',
+    display_name: 'VYNZO Demo',
+    likes_count: 0,
+    comments_count: 0,
+    is_demo: true
+  },
+  {
+    id: 'demo-escape',
+    title: 'تجربة ثانية للموجز',
+    description: 'الفيديوهات هاذم مؤقتين للعرض فقط، وما يتحسبوش وقت مشاهدة للمكافآت.',
+    video_url: 'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
+    thumbnail_url: '',
+    username: 'vynzo_demo',
+    display_name: 'VYNZO Demo',
+    likes_count: 0,
+    comments_count: 0,
+    is_demo: true
+  }
+];
+
 export default function App() {
   const [session, setSession] = useState(null);
   const [email, setEmail] = useState('');
@@ -116,12 +143,12 @@ export default function App() {
     <header className="topbar"><div className="brand"><div className="brand-mark small">V</div><div><b>VYNZO</b><small>شاهد. اكتشف. تقدّم.</small></div></div><button className="icon-btn" onClick={signOut} title="خروج"><LogOut size={18}/></button></header>
     {currentTab === 'videos' ? <section className="tiktok-feed">
       <div className="feed-topbar"><button className="feed-refresh" onClick={loadVideos} disabled={loadingVideos} aria-label="تحديث الفيديوهات"><RefreshCw size={18}/></button><div><span>متابَعون</span><b>لك</b><i/></div></div>
-      {loadingVideos ? <div className="feed-empty"><RefreshCw size={30}/><b>قاعدين نحمّلوا الفيديوهات…</b></div> : videos.length === 0 ? <div className="feed-empty"><PlayCircle size={44}/><b>أوّل فيديوهات VYNZO قريبة!</b><p>ما فماش فيديوهات منشورة توّا. كي يتضاف المحتوى، تلقاه هنا في موجز عمودي كيف تطبيقات الفيديو القصير.</p><button className="primary-btn" onClick={loadVideos}><RefreshCw size={17}/> عاود التحديث</button></div> : <div className="tiktok-scroll">{videos.map((video,index) => <article className="tiktok-video" key={video.id}>
+      {loadingVideos ? <div className="feed-empty"><RefreshCw size={30}/><b>قاعدين نحمّلوا الفيديوهات…</b></div> : <><div className="demo-notice">{videos.length === 0 ? 'وضع تجريبي · الفيديوهات هاذم للعرض فقط' : ''}</div><div className="tiktok-scroll">{(videos.length ? videos : demoVideos).map((video,index) => <article className="tiktok-video" key={video.id}>
         {video.video_url && /^https?:\/\//i.test(video.video_url) ? <video className="tiktok-player" controls playsInline preload="metadata" poster={video.thumbnail_url || undefined} src={video.video_url}/> : <div className="tiktok-placeholder"><PlayCircle size={48}/><b>الفيديو غير جاهز للتشغيل</b><span>يلزم رابط فيديو صالح</span></div>}
         <div className="video-shade"/>
-        <div className="tiktok-caption"><b>@{video.username || video.display_name || 'vynzo_creator'}</b><p>{video.title}</p>{video.description && <p>{video.description}</p>}<span className="sound-label"><Volume2 size={14}/> الصوت الأصلي · VYNZO</span></div>
+        <div className="tiktok-caption"><b>@{video.username || video.display_name || 'vynzo_creator'}</b><p>{video.title}</p>{video.description && <p>{video.description}</p>}<span className="sound-label"><Volume2 size={14}/> {video.is_demo ? 'فيديو تجريبي · VYNZO' : 'الصوت الأصلي · VYNZO'}</span></div>
         <div className="tiktok-actions"><div className="creator-avatar">{(video.display_name || video.username || 'V').slice(0,1).toUpperCase()}</div><button aria-label="إعجاب" className={likedVideos.includes(video.id)?'feed-action liked':'feed-action'} onClick={()=>setLikedVideos(prev=>prev.includes(video.id)?prev.filter(id=>id!==video.id):[...prev,video.id])}><Heart size={29} fill={likedVideos.includes(video.id)?'currentColor':'none'}/><small>{Number(video.likes_count||0)+(likedVideos.includes(video.id)?1:0)}</small></button><div className="feed-action"><MessageCircle size={28}/><small>{video.comments_count||0}</small></div><button aria-label="مشاركة" className="feed-action" onClick={()=>{if(navigator.share) navigator.share({title:video.title||'VYNZO',text:video.description||'',url:window.location.href}).catch(()=>{});else setMessage('استعمل زر مشاركة المتصفّح باش تبعث رابط VYNZO.')}}><Share2 size={27}/><small>مشاركة</small></button></div>
-      </article>)}</div>}
+      </article>)}</div></>}
     </section>: currentTab === 'rewards' ? <section className="feed-page"><div className="section-heading"><div><span className="mini-label">مكافآت VYNZO</span><h2>الصندوق الذهبي</h2></div><div className="gift-orb"><Gift size={23}/></div></div><div className="panel"><p className="muted">يلزمك 40 دقيقة مشاهدة مسجّلة في النهار باش تتحقّق من الأهلية.</p><div className="progress-meta"><b>{Math.floor(used/60)} / 40 دقيقة</b><span>{progress}%</span></div><div className="progress-track"><div className="progress-fill" style={{width:progress+'%'}}/></div><div className="box-status">{box?.box_status === 'claimed' ? 'الصندوق متاع اليوم خذيتو بالفعل.' : box?.eligible_to_open ? 'الصندوق متاح ليك اليوم.' : 'مازلت ما كملتش وقت المشاهدة المطلوب.'}</div><button className="primary-btn" disabled={busy || !box?.eligible_to_open || !box?.box_id || box?.box_status === 'claimed'} onClick={claimBox}><Gift size={17}/>{busy ? 'لحظة...' : box?.box_status === 'claimed' ? 'تمّ استلامه' : 'استلام الصندوق · 50 نقطة'}</button><small className="disclaimer">النقاط ليست أرباحًا نقدية مضمونة، والسحب معطّل حاليًا.</small></div></section> : currentTab === 'wallet' ? <section className="feed-page"><div className="section-heading"><div><span className="mini-label">رصيدك</span><h2>المحفظة</h2></div><div className="gift-orb"><Wallet size={23}/></div></div><div className="panel"><span className="mini-label">رصيد النقاط</span><h1>{points.toLocaleString('en-US')} <small>نقطة</small></h1><p className="muted">القيمة التقديرية: ${value.toFixed(2)} حسب إعدادات التطبيق الحالية.</p><div className="box-status">السحب والتحويل معطّلان حاليًا. ما فماش مدفوعات فعلية في النسخة هاذي.</div></div></section> : <>
     <section className="welcome"><div><p className="eyebrow">مرحبا بيك</p><h1>نهارك زين، <span>واصل تقدّمك!</span></h1><p>كل دقيقة مشاهدة تتسجّل حسب نظام التطبيق.</p></div><div className="welcome-icon"><Glasses size={36}/></div></section>
     {message && <div className="notice">{message}</div>}
