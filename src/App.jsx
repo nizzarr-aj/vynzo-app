@@ -3,6 +3,7 @@ import { supabase, supabaseConfigured } from './lib/supabase';
 import { Eye, Gift, Wallet, Clock3, LogOut, PlayCircle, Glasses, RefreshCw, Heart, MessageCircle, Share2, Volume2 } from 'lucide-react';
 
 const slots = ['06:00', '12:00', '18:00', '23:00'];
+const PAYMENT_ADDRESS = '0xc4ff2ed644c56158ae02eb17fdabedd37e387cb3';
 
 const demoVideos = [
   {
@@ -49,6 +50,13 @@ export default function App() {
   const [videos, setVideos] = useState([]);
   const [loadingVideos, setLoadingVideos] = useState(false);
   const [likedVideos, setLikedVideos] = useState([]);
+  const [glasses, setGlasses] = useState([]);
+  const [myOrders, setMyOrders] = useState([]);
+  const [adminOrders, setAdminOrders] = useState([]);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [selectedGlass, setSelectedGlass] = useState(null);
+  const [txHash, setTxHash] = useState('');
+  const [storeLoading, setStoreLoading] = useState(false);
 
   useEffect(() => {
     if (!supabase) return;
@@ -63,7 +71,44 @@ export default function App() {
 
   useEffect(() => {
     if (session && currentTab === 'videos') loadVideos();
+    if (session && (currentTab === 'store' || currentTab === 'admin')) loadStore();
   }, [session, currentTab]);
+
+  async function loadStore() {
+    if (!supabase || !session) return;
+    setStoreLoading(true);
+    const [catalog, orders, adminCheck] = await Promise.all([
+      supabase.from('digital_glasses').select('id,name,description,level,price_usd,image_url').eq('is_active', true).eq('is_purchasable', true).order('level'),
+      supabase.from('glass_purchase_orders').select('id,glasses_id,price_usd,status,provider_reference,created_at').order('created_at', { ascending: false }).limit(20),
+      supabase.rpc('vynzo_is_admin')
+    ]);
+    if (!catalog.error) setGlasses(catalog.data || []);
+    if (!orders.error) setMyOrders(orders.data || []);
+    setIsAdmin(!adminCheck.error && adminCheck.data === true);
+    if (!adminCheck.error && adminCheck.data === true) {
+      const { data, error } = await supabase.rpc('vynzo_admin_glass_orders');
+      if (!error) setAdminOrders(data || []);
+      else setMessage(error.message);
+    }
+    setStoreLoading(false);
+  }
+
+  async function submitGlassOrder(event) {
+    event.preventDefault();
+    if (!selectedGlass || !txHash.trim()) return;
+    setBusy(true); setMessage('');
+    const { error } = await supabase.rpc('vynzo_create_glass_order', { p_glasses_id: selectedGlass.id, p_tx_hash: txHash.trim() });
+    if (error) setMessage(error.message);
+    else { setMessage(tx('طلبك تسجّل. نستناو التثبّت اليدوي من وصول الدفعة.','Order submitted. Payment will be checked manually.')); setTxHash(''); setSelectedGlass(null); await loadStore(); }
+    setBusy(false);
+  }
+
+  async function reviewGlassOrder(orderId, approve) {
+    setBusy(true); setMessage('');
+    const { error } = await supabase.rpc('vynzo_admin_review_glass_order', { p_order_id: orderId, p_approve: approve });
+    setMessage(error ? error.message : (approve ? tx('تمّت الموافقة وفتح النظّارة للحريف.','Approved and glasses unlocked for customer.') : tx('ترفض الطلب.','Order rejected.')));
+    await loadStore(); setBusy(false);
+  }
 
   async function loadVideos() {
     if (!supabase) return;
@@ -153,7 +198,7 @@ export default function App() {
         <div className="tiktok-caption"><b>@{video.username || video.display_name || 'vynzo_creator'}</b><p>{video.title}</p>{video.description && <p>{video.description}</p>}<span className="sound-label"><Volume2 size={14}/> {video.is_demo ? tx('فيديو تجريبي · VYNZO','Demo video · VYNZO') : tx('الصوت الأصلي · VYNZO','Original sound · VYNZO')}</span></div>
         <div className="tiktok-actions"><div className="creator-avatar">{(video.display_name || video.username || 'V').slice(0,1).toUpperCase()}</div><button aria-label={tx('إعجاب','Like')} className={likedVideos.includes(video.id)?'feed-action liked':'feed-action'} onClick={()=>setLikedVideos(prev=>prev.includes(video.id)?prev.filter(id=>id!==video.id):[...prev,video.id])}><Heart size={29} fill={likedVideos.includes(video.id)?'currentColor':'none'}/><small>{Number(video.likes_count||0)+(likedVideos.includes(video.id)?1:0)}</small></button><div className="feed-action"><MessageCircle size={28}/><small>{video.comments_count||0}</small></div><button aria-label={tx('مشاركة','Share')} className="feed-action" onClick={()=>{if(navigator.share) navigator.share({title:video.title||'VYNZO',text:video.description||'',url:window.location.href}).catch(()=>{});else setMessage(tx('استعمل زر مشاركة المتصفّح باش تبعث رابط VYNZO.','Use your browser share button to share VYNZO.'))}}><Share2 size={27}/><small>{tx('مشاركة','Share')}</small></button></div>
       </article>)}</div></>}
-    </section>: currentTab === 'rewards' ? <section className="feed-page"><div className="section-heading"><div><span className="mini-label">{tx('مكافآت VYNZO','VYNZO REWARDS')}</span><h2>{tx('الصندوق الذهبي','Golden reward')}</h2></div><div className="gift-orb"><Gift size={23}/></div></div><div className="panel"><p className="muted">{tx('يلزمك 40 دقيقة مشاهدة مسجّلة في النهار باش تتحقّق من الأهلية.','You need 40 minutes of recorded viewing per day to qualify.')}</p><div className="progress-meta"><b>{isFr ? `${Math.floor(used/60)} / 40 min` : `${Math.floor(used/60)} / 40 دقيقة`}</b><span>{progress}%</span></div><div className="progress-track"><div className="progress-fill" style={{width:progress+'%'}}/></div><div className="box-status">{box?.box_status === 'claimed' ? tx('الصندوق متاع اليوم خذيتو بالفعل.','Today’s reward has already been claimed.') : box?.eligible_to_open ? tx('الصندوق متاح ليك اليوم.','Your reward is available today.') : tx('مازلت ما كملتش وقت المشاهدة المطلوب.','You have not completed the required watch time yet.')}</div><button className="primary-btn" disabled={busy || !box?.eligible_to_open || !box?.box_id || box?.box_status === 'claimed'} onClick={claimBox}><Gift size={17}/>{busy ? 'لحظة...' : box?.box_status === 'claimed' ? 'Claimed' : 'Claim reward · 50 points'}</button><small className="disclaimer">{tx('النقاط موش أرباح نقدية مضمونة، والسحب معطّل حاليًا.','Points are not guaranteed cash earnings. Withdrawals are currently disabled.')}</small></div></section> : currentTab === 'wallet' ? <section className="feed-page"><div className="section-heading"><div><span className="mini-label">{tx('رصيدك','YOUR BALANCE')}</span><h2>{tx('المحفظة','Wallet')}</h2></div><div className="gift-orb"><Wallet size={23}/></div></div><div className="panel"><span className="mini-label">{tx('رصيد النقاط','Points balance')}</span><h1>{points.toLocaleString('en-US')} <small>{tx('نقطة','points')}</small></h1><p className="muted">{tx('القيمة التقديرية: ','Estimated value: ')}${value.toFixed(2)}{tx(' حسب إعدادات التطبيق الحالية.',' based on current app settings.')}</p><div className="box-status">{tx('السحب والتحويل معطّلان حاليًا. ما فماش مدفوعات فعلية في النسخة هاذي.','Withdrawals and transfers are currently disabled. No real payments are available in this preview.')}</div></div></section> : <>
+    </section>: currentTab === 'store' ? <section className="feed-page"><div className="section-heading"><div><span className="mini-label">VYNZO STORE</span><h2>{tx('متجر النظّارات','Glasses store')}</h2></div><div className="gift-orb"><Glasses size={23}/></div></div><div className="panel"><p className="muted">{tx('اختار النظّارة، ابعث USDT على شبكة BNB Smart Chain (BEP20)، وبعد حطّ TX Hash. التفعيل يدوي بعد التثبّت من وصول الفلوس.','Choose glasses, pay USDT on BNB Smart Chain (BEP20), then submit the transaction hash. Activation is manual after payment verification.')}</p><div className="payment-address"><b>{tx('عنوان الدفع (BEP20)','Payment address (BEP20)')}</b><code>{PAYMENT_ADDRESS}</code><button className="secondary-btn" type="button" onClick={()=>navigator.clipboard?.writeText(PAYMENT_ADDRESS)}>{tx('انسخ العنوان','Copy address')}</button></div></div>{storeLoading ? <div className="panel">{tx('تحميل المتجر…','Loading store…')}</div> : <div className="glass-grid">{glasses.length ? glasses.map(g=><article className="glass-card" key={g.id}><div className="glass-art"><Glasses size={42}/><span>LVL {g.level}</span></div><h3>{g.name}</h3><p>{g.description}</p><strong>${Number(g.price_usd).toFixed(2)} USDT</strong><button className="primary-btn" onClick={()=>{setSelectedGlass(g);setTxHash('');}}>{tx('اشري النظّارة','Buy glasses')}</button></article>) : <div className="panel">{tx('ما فماش نظّارات مفعّلة للبيع توّا.','No glasses are currently enabled for sale.')}</div>}</div>}{selectedGlass && <form className="panel order-form" onSubmit={submitGlassOrder}><h3>{tx('تأكيد طلب الشراء','Submit purchase request')} · {selectedGlass.name}</h3><p>{tx('السعر','Price')}: ${Number(selectedGlass.price_usd).toFixed(2)} USDT</p><label>{tx('TX Hash متاع التحويل','Transaction hash')}<input value={txHash} onChange={e=>setTxHash(e.target.value)} required minLength={12} maxLength={200} placeholder="0x…" /></label><button className="primary-btn" disabled={busy}>{busy ? tx('لحظة…','Please wait…') : tx('ابعث الطلب للتثبّت','Submit for review')}</button></form>}<div className="panel"><h3>{tx('طلباتي','My orders')}</h3>{myOrders.length ? myOrders.map(o=><div className="order-row" key={o.id}><span>{o.provider_reference?.slice(0,16)}…</span><b>${Number(o.price_usd).toFixed(2)}</b><small>{o.status}</small></div>) : <p className="muted">{tx('ما عندك حتى طلب شراء.','No purchase orders yet.')}</p>}</div></section> : currentTab === 'admin' ? <section className="feed-page"><div className="section-heading"><div><span className="mini-label">ADMIN</span><h2>{tx('طلبات شراء النظّارات','Glasses purchase requests')}</h2></div><button className="icon-btn" onClick={loadStore}><RefreshCw size={17}/></button></div>{!isAdmin ? <div className="panel">{tx('الحساب هذا ما عندوش صلاحيات Admin.','This account does not have admin access.')}</div> : adminOrders.length ? adminOrders.map(o=><article className="panel admin-order" key={o.order_id}><b>{o.glass_name} · ${Number(o.price_usd).toFixed(2)}</b><p>{o.user_email}</p><small className="tx-hash">{o.tx_hash}</small><div className="admin-actions"><button className="primary-btn" disabled={busy} onClick={()=>reviewGlassOrder(o.order_id,true)}>{tx('Approve بعد التثبّت','Approve after verification')}</button><button className="secondary-btn" disabled={busy} onClick={()=>reviewGlassOrder(o.order_id,false)}>{tx('رفض','Reject')}</button></div></article>) : <div className="panel">{tx('ما فماش طلبات معلّقة.','No pending orders.')}</div>}</section> : currentTab === 'rewards' ? <section className="feed-page"><div className="section-heading"><div><span className="mini-label">{tx('مكافآت VYNZO','VYNZO REWARDS')}</span><h2>{tx('الصندوق الذهبي','Golden reward')}</h2></div><div className="gift-orb"><Gift size={23}/></div></div><div className="panel"><p className="muted">{tx('يلزمك 40 دقيقة مشاهدة مسجّلة في النهار باش تتحقّق من الأهلية.','You need 40 minutes of recorded viewing per day to qualify.')}</p><div className="progress-meta"><b>{isFr ? `${Math.floor(used/60)} / 40 min` : `${Math.floor(used/60)} / 40 دقيقة`}</b><span>{progress}%</span></div><div className="progress-track"><div className="progress-fill" style={{width:progress+'%'}}/></div><div className="box-status">{box?.box_status === 'claimed' ? tx('الصندوق متاع اليوم خذيتو بالفعل.','Today’s reward has already been claimed.') : box?.eligible_to_open ? tx('الصندوق متاح ليك اليوم.','Your reward is available today.') : tx('مازلت ما كملتش وقت المشاهدة المطلوب.','You have not completed the required watch time yet.')}</div><button className="primary-btn" disabled={busy || !box?.eligible_to_open || !box?.box_id || box?.box_status === 'claimed'} onClick={claimBox}><Gift size={17}/>{busy ? 'لحظة...' : box?.box_status === 'claimed' ? 'Claimed' : 'Claim reward · 50 points'}</button><small className="disclaimer">{tx('النقاط موش أرباح نقدية مضمونة، والسحب معطّل حاليًا.','Points are not guaranteed cash earnings. Withdrawals are currently disabled.')}</small></div></section> : currentTab === 'wallet' ? <section className="feed-page"><div className="section-heading"><div><span className="mini-label">{tx('رصيدك','YOUR BALANCE')}</span><h2>{tx('المحفظة','Wallet')}</h2></div><div className="gift-orb"><Wallet size={23}/></div></div><div className="panel"><span className="mini-label">{tx('رصيد النقاط','Points balance')}</span><h1>{points.toLocaleString('en-US')} <small>{tx('نقطة','points')}</small></h1><p className="muted">{tx('القيمة التقديرية: ','Estimated value: ')}${value.toFixed(2)}{tx(' حسب إعدادات التطبيق الحالية.',' based on current app settings.')}</p><div className="box-status">{tx('السحب والتحويل معطّلان حاليًا. ما فماش مدفوعات فعلية في النسخة هاذي.','Withdrawals and transfers are currently disabled. No real payments are available in this preview.')}</div></div></section> : <>
     <section className="home-hero">
       <div className="hero-glow hero-glow-one"/><div className="hero-glow hero-glow-two"/>
       <div className="hero-topline"><span className="online-dot"/>{tx('منصّتك للفيديوهات والمكافآت','VIDEOS & REWARDS')}</div>
@@ -178,7 +223,7 @@ export default function App() {
       <small className="disclaimer">Points and displayed values are estimates. Transfers and withdrawals are currently disabled; cash earnings are not guaranteed.</small>
     </section>
     </>}
-    <nav className="bottom-nav"><button className={'nav-item '+(currentTab==='home'?'active':'')} onClick={()=>setCurrentTab('home')}><PlayCircle size={20}/><span>{tx('الرئيسية','Home')}</span></button><button className={'nav-item '+(currentTab==='videos'?'active':'')} onClick={()=>setCurrentTab('videos')}><Eye size={20}/><span>{tx('الفيديوهات','Videos')}</span></button><button className={'nav-item '+(currentTab==='rewards'?'active':'')} onClick={()=>setCurrentTab('rewards')}><Gift size={20}/><span>{tx('المكافآت','Rewards')}</span></button><button className={'nav-item '+(currentTab==='wallet'?'active':'')} onClick={()=>setCurrentTab('wallet')}><Wallet size={20}/><span>{tx('المحفظة','Wallet')}</span></button></nav>
+    <nav className="bottom-nav"><button className={'nav-item '+(currentTab==='home'?'active':'')} onClick={()=>setCurrentTab('home')}><PlayCircle size={20}/><span>{tx('الرئيسية','Home')}</span></button><button className={'nav-item '+(currentTab==='videos'?'active':'')} onClick={()=>setCurrentTab('videos')}><Eye size={20}/><span>{tx('الفيديوهات','Videos')}</span></button><button className={'nav-item '+(currentTab==='rewards'?'active':'')} onClick={()=>setCurrentTab('rewards')}><Gift size={20}/><span>{tx('المكافآت','Rewards')}</span></button><button className={'nav-item '+(currentTab==='wallet'?'active':'')} onClick={()=>setCurrentTab('wallet')}><Wallet size={20}/><span>{tx('المحفظة','Wallet')}</span></button><button className={'nav-item '+(currentTab==='store'?'active':'')} onClick={()=>setCurrentTab('store')}><Glasses size={20}/><span>{tx('المتجر','Store')}</span></button>{isAdmin && <button className={'nav-item '+(currentTab==='admin'?'active':'')} onClick={()=>setCurrentTab('admin')}><Eye size={20}/><span>{tx('الإدارة','Admin')}</span></button>}</nav>
     <footer>VYNZO • {tx('نسخة تجريبية أوّلية','Early access preview')}</footer>
   </main>;
 }
