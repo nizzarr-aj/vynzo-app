@@ -381,3 +381,62 @@ footer{padding:22px 0 8px;text-align:center;color:#686e85;font-size:11px}
 .admin-actions{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
 .admin-actions .primary-btn{flex:1}
 @media(max-width:390px){.glass-grid{grid-template-columns:1fr}.glass-card p{min-height:0}}
+
+
+/* VYNZO store polish: readable typography, real product photography, compact responsive layout */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap');
+html,body,#root{font-family:'Inter','IBM Plex Sans Arabic',Tahoma,sans-serif!important}
+.app-shell,.app-shell button,.app-shell input,.app-shell label,.app-shell small,.app-shell p,.app-shell span,.app-shell b,.app-shell strong,.app-shell h1,.app-shell h2,.app-shell h3,.app-shell footer,.brand b,.brand small,.section-heading h2,.nav-item{font-family:'Inter','IBM Plex Sans Arabic',Tahoma,sans-serif!important;font-style:normal}
+.app-shell{padding-bottom:150px}
+.topbar{gap:12px}
+.brand b{font-size:clamp(22px,5vw,30px);letter-spacing:.12em;font-weight:800}
+.brand small{font-size:12px;letter-spacing:.02em}
+.feed-page{padding-top:18px}
+.section-heading{margin-bottom:16px}
+.section-heading h2{font-size:clamp(22px,5vw,28px);font-weight:700;letter-spacing:-.035em}
+.mini-label,.eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase}
+.panel{padding:18px;border-radius:22px}
+.panel p{font-size:14px;line-height:1.7}
+.glass-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;margin:18px 0 24px}
+.glass-card{padding:10px;border-radius:20px;background:linear-gradient(155deg,#1b1e30,#10121e);border-color:#34344f}
+.glass-art{height:auto;aspect-ratio:1.18/1;overflow:hidden;border-radius:15px;background:radial-gradient(ellipse at 50% 35%,#6246a65c,transparent 65%),linear-gradient(145deg,#121526,#080a12);border:1px solid #ffffff0b}
+.glass-art img{width:100%;height:100%;object-fit:contain;display:block;padding:8px;filter:drop-shadow(0 10px 12px #0008)}
+.glass-level{position:absolute;bottom:8px;left:8px;inset-inline-start:8px;z-index:2;font-size:9px!important;font-weight:700;letter-spacing:.08em;color:#e4d8ff!important;background:#171326d9;border:1px solid #9e7ce94d;border-radius:99px;padding:4px 7px}
+.glass-card h3{font-size:15px;font-weight:700;margin:13px 2px 5px}
+.glass-card p{font-size:12px;line-height:1.55;margin:0 2px;min-height:38px;color:#aeb2c8}
+.glass-card strong{font-size:16px;font-weight:800;color:#c9b2ff;margin:12px 2px}
+.glass-card .primary-btn{min-height:44px;margin-top:8px;padding:10px 8px;border-radius:12px;font-size:13px}
+.payment-address{gap:12px;padding:15px;border-radius:17px}
+.payment-address b{font-size:15px}
+.payment-address code{font-family:ui-monospace,monospace!important;font-size:11px;line-height:1.65;display:block;overflow-wrap:anywhere}
+.secondary-btn{font-size:13px;font-weight:600;min-height:42px}
+.order-form input{font-family:ui-monospace,monospace!important}
+.bottom-nav{left:10px;right:10px;bottom:calc(8px + env(safe-area-inset-bottom));transform:none;width:auto;max-width:700px;margin:0 auto;display:flex;justify-content:flex-start;gap:5px;padding:8px;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:none;border:1px solid #3a3552;border-radius:22px;background:rgba(12,13,23,.96);box-shadow:0 10px 35px #0009;z-index:50}
+.bottom-nav::-webkit-scrollbar{display:none}
+.nav-item{flex:1 0 62px;min-width:62px;min-height:58px;padding:8px 5px;gap:5px;border-radius:14px;font-size:10px;font-weight:600;white-space:nowrap}
+.nav-item svg{width:21px;height:21px}
+@media(max-width:390px){
+ .app-shell{padding-left:12px;padding-right:12px;padding-bottom:150px}
+ .glass-grid{gap:10px}
+ .glass-card{padding:8px}
+ .glass-art{aspect-ratio:1/1}
+ .glass-card h3{font-size:14px}
+ .glass-card p{font-size:11px;min-height:34px}
+ .glass-card .primary-btn{font-size:12px}
+ .panel{padding:15px}
+ .bottom-nav{left:7px;right:7px}
+ .nav-item{flex-basis:58px;min-width:58px;font-size:9px}
+}
+.glasses-render{position:relative;width:88%;height:38%;min-height:45px;filter:drop-shadow(0 10px 12px #0009);transform:rotate(-7deg)}
+.glasses-render .lens{position:absolute;top:12%;width:39%;height:73%;border:4px solid #a9b6d5;border-radius:35% 35% 42% 42%;background:linear-gradient(145deg,#b8d8ff44,#151a2d88 55%,#6b83ad44);box-shadow:inset 0 0 14px #d8e8ff24,0 0 9px #8ba8ff22}
+.glasses-render .lens-left{left:4%}
+.glasses-render .lens-right{right:4%}
+.glasses-render .bridge{position:absolute;left:42%;top:31%;width:16%;height:5px;border-radius:9px;background:#bdc9e0}
+.glasses-render .arm{position:absolute;top:22%;width:17%;height:4px;border-radius:9px;background:#aab7d2}
+.glasses-render .arm-left{left:-10%;transform:rotate(-12deg)}
+.glasses-render .arm-right{right:-10%;transform:rotate(12deg)}
+.glasses-level-2 .lens{border-color:#b9d4ff;background:linear-gradient(145deg,#70a9ff66,#17233b 60%,#a8d2ff44)}
+.glasses-level-3 .lens{border-color:#a8acbd;background:linear-gradient(145deg,#ffffff40,#090a10 60%,#6d7180aa)}
+.glasses-level-3 .bridge,.glasses-level-3 .arm{background:#d1d3dc}
+.glasses-level-4 .lens{border-color:#e2c477;background:linear-gradient(145deg,#e8cb7866,#17120b 60%,#bd974744);box-shadow:inset 0 0 14px #ffe7a52b,0 0 10px #e5bd6333}
+.glasses-level-4 .bridge,.glasses-level-4 .arm{background:#e2c477}
